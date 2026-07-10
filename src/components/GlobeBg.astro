@@ -1,0 +1,211 @@
+---
+// Ambienter Hintergrund „digitaler Globus": eine große, sich selbst drehende Kugel
+// aus Gitterpunkten mit realen Städte-Knoten; zwischen den Kontinenten wandern
+// „Pakete" auf Großkreis-Bögen (wie Netzwerkverkehr). Liegt als tiefere Ebene
+// (z-index:-2) hinter dem interaktiven Netzwerk (NetworkBg, z-index:-1), teilt sich
+// dessen Akzentfarben und ruht unter prefers-reduced-motion. Reines Vanilla-Canvas.
+---
+<canvas id="globebg" aria-hidden="true"></canvas>
+<style>
+  #globebg{position:fixed;inset:0;width:100vw;height:100vh;z-index:-2;pointer-events:none;opacity:.62}
+  :root[data-theme="light"] #globebg{opacity:.6}
+</style>
+<script is:inline>
+  (function () {
+    var c = document.getElementById('globebg');
+    if (!c || !c.getContext) return;
+    var ctx = c.getContext('2d');
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var DPR = Math.min(window.devicePixelRatio || 1, 2);
+    var W = 0, H = 0, R = 0, cx = 0, cy = 0, raf = 0, t0 = 0;
+
+    // Akzentfarben aus dem Theme lesen (wie NetworkBg), Live-Update bei Theme-Wechsel.
+    function accents() {
+      var s = getComputedStyle(document.documentElement);
+      return [(s.getPropertyValue('--accent') || '#7c6cff').trim(),
+              (s.getPropertyValue('--accent-2') || '#33d0ba').trim()];
+    }
+    function rgb(h) {
+      h = h.replace('#', '');
+      if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      var n = parseInt(h, 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+    var A = rgb(accents()[0]), B = rgb(accents()[1]);
+    function refreshColors() { var a = accents(); A = rgb(a[0]); B = rgb(a[1]); }
+
+    // --- Kugelgeometrie -----------------------------------------------------
+    var DEG = Math.PI / 180, TILT = 22 * DEG;
+    function unit(lat, lon) {          // (Breite,Länge) -> Einheitsvektor
+      var la = lat * DEG, lo = lon * DEG, cl = Math.cos(la);
+      return { x: cl * Math.cos(lo), y: Math.sin(la), z: cl * Math.sin(lo) };
+    }
+    function rot(v, ay) {              // Drehung um Y (Eigenrotation) + feste X-Neigung
+      var cs = Math.cos(ay), sn = Math.sin(ay);
+      var x = v.x * cs - v.z * sn, z = v.x * sn + v.z * cs, y = v.y;
+      var ct = Math.cos(TILT), st = Math.sin(TILT);
+      return { x: x, y: y * ct - z * st, z: y * st + z * ct };
+    }
+
+    // Kontinent-Umrisse (grob, [lon,lat]) — die Landflächen werden mit Punkten
+    // gefüllt, sodass ein „gepunkteter Globus" mit erkennbaren Kontinenten entsteht.
+    var CONTS = [
+      [[-165,62],[-140,70],[-95,72],[-60,60],[-52,48],[-70,42],[-80,26],[-97,18],[-84,9],[-78,8],[-95,16],[-112,23],[-124,40],[-135,58],[-165,62]],   // Nordamerika
+      [[-78,10],[-60,10],[-50,0],[-35,-8],[-40,-22],[-58,-40],[-70,-55],[-72,-48],[-70,-30],[-73,-16],[-81,-4],[-78,10]],                               // Südamerika
+      [[-16,20],[-10,32],[10,37],[32,32],[43,12],[51,12],[42,-2],[40,-15],[32,-28],[20,-35],[13,-24],[9,4],[-8,5],[-16,12],[-16,20]],                    // Afrika
+      [[-9,44],[-5,55],[5,60],[12,68],[28,70],[41,64],[38,54],[30,46],[20,40],[10,44],[0,43],[-9,44]],                                                  // Europa
+      [[30,46],[42,66],[70,73],[100,75],[140,72],[168,66],[170,60],[150,52],[140,46],[135,35],[122,30],[120,22],[108,10],[100,6],[92,20],[78,8],[73,22],[58,26],[52,40],[40,44],[30,46]],  // Asien
+      [[113,-22],[122,-16],[132,-12],[142,-11],[147,-20],[153,-30],[147,-38],[137,-38],[125,-33],[115,-34],[113,-22]],                                  // Australien
+      [[-45,60],[-22,70],[-22,82],[-42,83],[-58,76],[-50,64],[-45,60]],                                                                                 // Grönland
+      [[130,31],[138,35],[142,40],[145,44],[141,38],[135,34],[130,31]],                                                                                 // Japan
+      [[43,-25],[50,-16],[49,-12],[45,-22],[43,-25]],                                                                                                   // Madagaskar
+      [[166,-46],[174,-41],[178,-37],[173,-42],[168,-46],[166,-46]],                                                                                    // Neuseeland
+      [[96,4],[118,2],[141,-3],[150,-9],[132,-8],[112,-8],[100,-2],[96,4]],                                                                             // Insel-Südostasien / Neuguinea
+      [[-8,50],[-2,58],[-4,54],[1,52],[-8,50]],                                                                                                          // Britische Inseln
+    ];
+    function pip(lon, lat, poly) {
+      var inside = false, n = poly.length, i, j;
+      for (i = 0, j = n - 1; i < n; j = i++) {
+        var xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+        if (((yi > lat) !== (yj > lat)) && (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
+      }
+      return inside;
+    }
+    // Landpunkte einmal rastern (Einheitsvektoren auf der Kugel).
+    var GRID = [];
+    for (var la = -58; la <= 74; la += 1.7) {
+      for (var lo = -180; lo < 180; lo += 1.7) {
+        for (var ci = 0; ci < CONTS.length; ci++) {
+          if (pip(lo, la, CONTS[ci])) { GRID.push(unit(la, lo)); break; }
+        }
+      }
+    }
+
+    // Reale Städte über alle Kontinente — bilden die Knoten der Kontinent-Cluster.
+    var CITY = [
+      [40.7,-74],[34,-118],[41.9,-87.6],[43.7,-79.4],[19.4,-99.1],       // Nordamerika
+      [-23.5,-46.6],[-34.6,-58.4],[4.7,-74],[-12,-77],                   // Südamerika
+      [51.5,-0.1],[48.9,2.35],[52.5,13.4],[40.4,-3.7],[41.9,12.5],       // Europa
+      [59.3,18],[52.2,21],[50.4,30.5],[55.75,37.6],[41,28.98],
+      [30,31.2],[6.5,3.4],[-26.2,28],[-1.3,36.8],[33.6,-7.6],            // Afrika
+      [25.2,55.3],[19,72.8],[28.6,77.2],[13.75,100.5],[1.35,103.8],      // Asien
+      [39.9,116.4],[31.2,121.5],[22.3,114.2],[35.7,139.7],[37.6,127],[-6.2,106.8],
+      [-33.9,151.2],[-36.8,174.8],[-31.95,115.9],                        // Ozeanien
+    ].map(function (p) { return unit(p[0], p[1]); });
+
+    // --- Pakete (wandernde Großkreis-Bögen) ---------------------------------
+    var arcs = [], MAX_ARCS = 8, spawnAt = 0;
+    function rnd(n) { return Math.floor(Math.random() * n); }
+    function spawn() {
+      var a = rnd(CITY.length), b = rnd(CITY.length), guard = 0;
+      while (b === a && guard++ < 5) b = rnd(CITY.length);
+      arcs.push({ a: a, b: b, t: 0, sp: 0.0016 + Math.random() * 0.0022 });
+    }
+    function slerp(u, v, t) {          // Interpolation auf der Kugel, leicht aufgewölbt
+      var d = Math.max(-1, Math.min(1, u.x*v.x + u.y*v.y + u.z*v.z));
+      var o = Math.acos(d);
+      if (o < 1e-4) return { x: u.x, y: u.y, z: u.z };
+      var s = Math.sin(o), s0 = Math.sin((1 - t) * o) / s, s1 = Math.sin(t * o) / s;
+      var lift = 1 + 0.16 * Math.sin(t * Math.PI);
+      return { x: (u.x*s0 + v.x*s1) * lift, y: (u.y*s0 + v.y*s1) * lift, z: (u.z*s0 + v.z*s1) * lift };
+    }
+
+    function resize() {
+      W = c.clientWidth; H = c.clientHeight;
+      c.width = W * DPR; c.height = H * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      // Kleiner als der Viewport, damit der runde Rand sichtbar ist und die Kugel
+      // klar als Globus lesbar bleibt.
+      R = Math.min(W * 0.42, H * 0.42, 460);
+      cx = W * 0.5; cy = H * 0.44;
+    }
+    function ca(rgbA, a) { return 'rgba(' + rgbA[0] + ',' + rgbA[1] + ',' + rgbA[2] + ',' + a + ')'; }
+
+    function draw(now) {
+      var ay = (now - t0) * 0.00007;   // langsame Eigenrotation
+      ctx.clearRect(0, 0, W, H);
+
+      // Kugelvolumen (dezenter radialer Verlauf) + Silhouette (Limbus), damit die
+      // Kugel klar als Globus gelesen wird.
+      var g = ctx.createRadialGradient(cx - R * 0.32, cy - R * 0.32, R * 0.08, cx, cy, R);
+      g.addColorStop(0, ca(A, 0.12));
+      g.addColorStop(0.7, ca(A, 0.05));
+      g.addColorStop(1, ca(A, 0));
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.fill();
+      ctx.lineWidth = 1; ctx.strokeStyle = ca(A, 0.22);
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.stroke();
+
+      // Landpunkte (Kontinente) — Vorderseite heller, Rückseite gedämpft = Tiefe
+      for (var i = 0; i < GRID.length; i++) {
+        var p = rot(GRID[i], ay);
+        var al = p.z > 0 ? 0.56 : 0.12;
+        ctx.fillStyle = ca(A, al);
+        var x = cx + p.x * R, y = cy - p.y * R;
+        ctx.fillRect(x - 0.7, y - 0.7, 1.4, 1.4);
+      }
+
+      // Städte-Knoten (mit weichem Halo)
+      for (var k = 0; k < CITY.length; k++) {
+        var q = rot(CITY[k], ay);
+        if (q.z <= 0) continue;
+        var xx = cx + q.x * R, yy = cy - q.y * R;
+        ctx.fillStyle = ca(A, 0.1 + 0.14 * q.z);
+        ctx.beginPath(); ctx.arc(xx, yy, 4.5, 0, 6.283); ctx.fill();
+        ctx.fillStyle = ca(A, 0.6 + 0.4 * q.z);
+        ctx.beginPath(); ctx.arc(xx, yy, 1.9, 0, 6.283); ctx.fill();
+      }
+
+      // Pakete auf Großkreis-Bögen
+      for (var ai = arcs.length - 1; ai >= 0; ai--) {
+        var arc = arcs[ai];
+        if (!reduce) arc.t += arc.sp;
+        if (arc.t >= 1) { arcs.splice(ai, 1); continue; }
+        var u = CITY[arc.a], v = CITY[arc.b];
+        // Bogenlinie zeichnen (nur sichtbare Vorderseiten-Segmente)
+        ctx.lineWidth = 1.1;
+        ctx.strokeStyle = ca(B, 0.42);
+        ctx.beginPath();
+        var started = false;
+        for (var s = 0; s <= 1.0001; s += 1 / 40) {
+          var pt = rot(slerp(u, v, s), ay);
+          var sx = cx + pt.x * R, sy = cy - pt.y * R;
+          if (pt.z > -0.15) { if (started) ctx.lineTo(sx, sy); else { ctx.moveTo(sx, sy); started = true; } }
+          else { started = false; }
+        }
+        ctx.stroke();
+        // Paketkopf + kurzer Schweif
+        for (var tr = 0; tr < 5; tr++) {
+          var tt = arc.t - tr * 0.03;
+          if (tt < 0) break;
+          var hp = rot(slerp(u, v, tt), ay);
+          if (hp.z <= -0.05) continue;
+          var hx = cx + hp.x * R, hy = cy - hp.y * R;
+          var a2 = (tr === 0 ? 0.95 : 0.5 * (1 - tr / 5));
+          ctx.fillStyle = 'rgba(' + B[0] + ',' + B[1] + ',' + B[2] + ',' + a2 + ')';
+          ctx.beginPath(); ctx.arc(hx, hy, tr === 0 ? 2.2 : 1.3, 0, 6.283); ctx.fill();
+        }
+      }
+
+      // neue Pakete nachrücken lassen
+      if (!reduce && now > spawnAt && arcs.length < MAX_ARCS) {
+        spawn(); spawnAt = now + 480 + Math.random() * 700;
+      }
+    }
+
+    function loop(now) { draw(now || performance.now()); raf = requestAnimationFrame(loop); }
+
+    window.addEventListener('resize', resize, { passive: true });
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { cancelAnimationFrame(raf); raf = 0; }
+      else if (!raf && !reduce) { loop(); }
+    });
+    var mo = new MutationObserver(refreshColors);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    t0 = performance.now();
+    resize();
+    for (var q0 = 0; q0 < 4; q0++) spawn();     // ein paar Pakete zum Start
+    if (reduce) { draw(t0); } else { loop(); }   // statischer Einzelframe bei reduzierter Bewegung
+  })();
+</script>

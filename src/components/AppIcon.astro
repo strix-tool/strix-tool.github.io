@@ -1,0 +1,64 @@
+---
+// Einheitlicher App-Icon-Satz: ein abgerundetes Farbverlaufs-Badge mit einer weißen Monoline-Glyphe.
+const { id, accent = 'var(--accent)', accent2 = 'var(--accent-2)', size = 46 } = Astro.props;
+const uid = 'ic' + Math.random().toString(36).slice(2, 8);
+
+const glyphs = {
+  vault: `
+    <path d="M24 10l11 4v9c0 7-5 12-11 14-6-2-11-7-11-14v-9z" fill="none" stroke="#fff" stroke-width="2.4"/>
+    <circle cx="24" cy="22" r="2.6" fill="#fff"/>
+    <path d="M24 24.6v4.2" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>`,
+  pulse: `
+    <path d="M11 25h5l3-8 4.5 16 3-10 2 2h8" fill="none" stroke="#fff"
+          stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>`,
+  sentinel: `
+    <path d="M24 10l11 4v9c0 7-5 12-11 14-6-2-11-7-11-14v-9z" fill="none" stroke="#fff" stroke-width="2.3"/>
+    <path d="M16.5 23c2.5-3.4 12.5-3.4 15 0-2.5 3.4-12.5 3.4-15 0z" fill="none" stroke="#fff" stroke-width="1.9"/>
+    <circle cx="24" cy="23" r="2.2" fill="#fff"/>`,
+  inspector: `
+    <rect x="12.5" y="27" width="3" height="7.5" rx="1.3" fill="#fff" opacity="0.6"/>
+    <rect x="18" y="23" width="3" height="11.5" rx="1.3" fill="#fff" opacity="0.6"/>
+    <circle cx="28.5" cy="20.5" r="6.6" fill="none" stroke="#fff" stroke-width="2.5"/>
+    <path d="M33.3 25.3l4.2 4.2" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/>`,
+  wipe: `
+    <rect x="11.5" y="16" width="25" height="16" rx="3.6" fill="none" stroke="#fff" stroke-width="2.2"/>
+    <circle cx="30" cy="24" r="2.1" fill="#fff"/>
+    <path d="M15 30.5 L27 17.5" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/>
+    <path d="M28 15.5l1.2 2.6 2.6 1.2-2.6 1.2-1.2 2.6-1.2-2.6-2.6-1.2 2.6-1.2z" fill="#ffd166"/>`,
+  radar: `
+    <circle cx="24" cy="24" r="12.5" fill="none" stroke="#fff" stroke-width="1.9" opacity="0.45"/>
+    <circle cx="24" cy="24" r="7.6" fill="none" stroke="#fff" stroke-width="1.9" opacity="0.7"/>
+    <circle cx="24" cy="24" r="2.3" fill="#fff"/>
+    <path d="M24 24 L34.6 15.4" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="30.5" cy="16.5" r="2" fill="#ffd166"/>`,
+  target: `
+    <circle cx="24" cy="24" r="12.4" fill="none" stroke="#fff" stroke-width="1.9" opacity="0.5"/>
+    <circle cx="24" cy="24" r="6.6" fill="none" stroke="#fff" stroke-width="2.1"/>
+    <circle cx="24" cy="24" r="1.9" fill="#fff"/>
+    <path d="M24 6v6 M24 36v6 M6 24h6 M36 24h6" stroke="#fff" stroke-width="2.1" stroke-linecap="round"/>`,
+  sinkhole: `
+    <path d="M11 14.5 L20.5 33 M37 14.5 L27.5 33" stroke="#fff" stroke-width="1.6" opacity="0.45" stroke-linecap="round"/>
+    <ellipse cx="24" cy="14.5" rx="13" ry="4.6" fill="none" stroke="#fff" stroke-width="2.3"/>
+    <ellipse cx="24" cy="22" rx="8.4" ry="3" fill="none" stroke="#fff" stroke-width="2" opacity="0.85"/>
+    <ellipse cx="24" cy="28.4" rx="4.2" ry="1.7" fill="none" stroke="#fff" stroke-width="1.9" opacity="0.7"/>
+    <circle cx="24" cy="34.4" r="2.1" fill="#ffd166"/>`,
+  talon: `
+    <circle cx="24" cy="10.5" r="2.3" fill="#ffd166"/>
+    <path d="M24 12.5 C 15.5 17, 13 26, 14.5 35" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M24 12.5 C 24 20, 24 28, 23.5 36" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M24 12.5 C 32.5 17, 35 26, 33.5 35" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M14.5 35 c -1 -2.4 -1.2 -4 -0.6 -6 M23.5 36 c -1.4 -1.8 -1.9 -3.6 -1.7 -6 M33.5 35 c 1 -2.4 1.2 -4 0.6 -6"
+          fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>`,
+};
+---
+<svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true"
+     xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id={uid} x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color={accent}></stop>
+      <stop offset="1" stop-color={accent2}></stop>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="44" height="44" rx="13" fill={`url(#${uid})`}></rect>
+  <g set:html={glyphs[id] || ''}></g>
+</svg>

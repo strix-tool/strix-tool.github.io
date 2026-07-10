@@ -1,0 +1,208 @@
+---
+// Seite „Sicherheit & Vertrauen" („Download verifizieren"). Alle Texte stammen aus dem
+// sprachspezifischen Wörterbuch `security` (data/i18n/*.js); Befehle bleiben auf Englisch.
+import { apps, repoUrl, APP_UPDATED } from '../data/apps.js';
+import { SITE, appPath } from '../data/site.js';
+import { getSecurity, localizePath } from '../data/i18n.js';
+import { checksums } from '../data/downloads.js';
+
+const { locale = 'en' } = Astro.props;
+const s = getSecurity(locale);
+
+const EX_REPO = 'strix-inspector';
+const EX_FILE = 'Strix-Inspector-Setup.exe';
+const winCmd = `Get-FileHash .\\${EX_FILE} -Algorithm SHA256`;
+const winExpect = `Algorithm  Hash                                                              Path\n---------  ----                                                              ----\nSHA256     3F2A…  (compare this to the value in SHA256SUMS)                    …\\${EX_FILE}`;
+const nixCmd = `sha256sum -c SHA256SUMS`;
+const nixExpect = `${EX_FILE}: OK`;
+const attCmd = `gh attestation verify ${EX_FILE} --repo ${SITE.org}/${EX_REPO}`;
+const attExpect = `Loaded digest sha256:… for file://${EX_FILE}\n✓ Verification succeeded!\n\n  - Source Repository: ${SITE.org}/${EX_REPO}\n  - Predicate type:    https://slsa.dev/provenance/v1`;
+
+const sourceLinks = apps.map((a) => ({ name: a.name, url: repoUrl(a.slug), linuxOnly: !!a.linuxOnly }));
+---
+<section class="wrap vhead">
+  <h1>{s.h1}</h1>
+  <p class="lead">{s.lead}</p>
+  <p class="upd">{s.updatedLabel} <time datetime={APP_UPDATED}>{APP_UPDATED}</time></p>
+</section>
+
+<section class="wrap why3" aria-label={s.h1}>
+  {s.why.map((w, i) => (
+    <div class="why-card">
+      <span class="wc-ic">{['📖', '🔗', '✈️'][i]}</span>
+      <h3>{w.t}</h3>
+      <p>{w.d}</p>
+    </div>
+  ))}
+</section>
+
+<section class="wrap vblock" aria-labelledby="verify-dl">
+  <h2 id="verify-dl">{s.verify.h2}</h2>
+  <p class="sub">{s.verify.sub}</p>
+
+  <div class="steps">
+    <article class="step">
+      <div class="st-h"><span class="os">🪟 Windows</span><span class="stt">{s.verify.winStt}</span></div>
+      <p>{s.verify.winIntro}</p>
+      <div class="cmd"><button class="copy" type="button" aria-label="Copy">Copy</button><pre><code>{winCmd}</code></pre></div>
+      <p class="exp">{s.verify.winExp}</p>
+      <pre class="out"><code>{winExpect}</code></pre>
+    </article>
+
+    <article class="step">
+      <div class="st-h"><span class="os">🐧 Linux</span><span class="stt">{s.verify.nixStt}</span></div>
+      <p>{s.verify.nixIntro}</p>
+      <div class="cmd"><button class="copy" type="button" aria-label="Copy">Copy</button><pre><code>{nixCmd}</code></pre></div>
+      <p class="exp">{s.verify.nixExp}</p>
+      <pre class="out"><code>{nixExpect}</code></pre>
+    </article>
+
+    <article class="step">
+      <div class="st-h"><span class="os">🔗 {s.verify.anyOs}</span><span class="stt">{s.verify.provStt}</span></div>
+      <p>{s.verify.provIntro} <a href="https://cli.github.com/" rel="noopener">GitHub CLI</a></p>
+      <div class="cmd"><button class="copy" type="button" aria-label="Copy">Copy</button><pre><code>{attCmd}</code></pre></div>
+      <p class="exp">{s.verify.provExp}</p>
+      <pre class="out"><code>{attExpect}</code></pre>
+    </article>
+  </div>
+  <p class="note">{s.verify.note} <a href={checksums(EX_REPO)} rel="noopener">SHA256SUMS</a></p>
+</section>
+
+<section class="wrap vblock" aria-labelledby="dataflow">
+  <h2 id="dataflow">{s.data.h2}</h2>
+  <p class="sub">{s.data.sub}</p>
+  <div class="tbl-wrap">
+    <table class="dflow">
+      <thead><tr><th>{s.data.thCategory}</th><th>{s.data.thWhat}</th><th>{s.data.thWhere}</th></tr></thead>
+      <tbody>
+        {s.data.rows.map(([a, b, c]) => (
+          <tr><th scope="row">{a}</th><td>{b}</td><td class="stays">{c}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="wrap vblock av" aria-labelledby="av">
+  <h2 id="av">{s.av.h2}</h2>
+  <p>{s.av.intro1} <em>“{s.av.unknownPublisher}”</em> or <em>“{s.av.notCommon}”</em> {s.av.intro2} <strong>{s.av.intro3}</strong></p>
+  <ul class="avlist">
+    {s.av.list.map((li) => (<li><strong>{li.b}</strong> {li.r}</li>))}
+  </ul>
+  <p class="tiny">{s.av.tiny}</p>
+</section>
+
+<section class="wrap vblock" aria-labelledby="readsrc">
+  <h2 id="readsrc">{s.read.h2}</h2>
+  <p class="sub">{s.read.sub}</p>
+  <div class="srcgrid">
+    {sourceLinks.map((sl) => (
+      <a class="src" href={sl.url} rel="noopener">
+        <span class="sn">{sl.name}{sl.linuxOnly && <span class="lx">Linux</span>}</span>
+        <span class="sg">{s.read.view}</span>
+      </a>
+    ))}
+  </div>
+</section>
+
+<section class="wrap vblock" aria-labelledby="tm">
+  <h2 id="tm">{s.threat.h2}</h2>
+  <dl class="tm">
+    {s.threat.items.map(([k, v]) => (<><dt>{k}</dt><dd>{v}</dd></>))}
+  </dl>
+</section>
+
+<section class="wrap vblock report" aria-labelledby="report">
+  <h2 id="report">{s.report.h2}</h2>
+  <p>{s.report.p}</p>
+  <div class="rbtns">
+    <a class="btn" href={`${SITE.githubUrl}/${EX_REPO}/security/policy`} rel="noopener">{s.report.btnPolicy}</a>
+    <a class="btn ghost" href={SITE.githubUrl} rel="noopener">{s.report.btnRepos}</a>
+  </div>
+</section>
+
+<style>
+  .vhead{padding:60px 22px 6px;text-align:center;max-width:820px}
+  .vhead h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 14px;text-wrap:balance}
+  .vhead .lead{color:var(--dim);font-size:17px;line-height:1.7;margin:0 auto}
+  .vhead .lead strong{color:var(--text)}
+  .vhead .upd{margin-top:16px;color:var(--faint);font-size:13px}
+  .why3{display:grid;gap:16px;grid-template-columns:repeat(3,1fr);padding:30px 22px 10px}
+  .why-card{background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:20px}
+  .wc-ic{font-size:22px}
+  .why-card h3{margin:10px 0 6px;font-size:16px}
+  .why-card p{color:var(--dim);font-size:14px;line-height:1.6;margin:0}
+  .vblock{padding:34px 22px 6px;max-width:920px}
+  .vblock h2{font-size:clamp(22px,3vw,28px);margin:0 0 8px}
+  .vblock .sub{color:var(--dim);font-size:15px;line-height:1.65;margin:0 0 20px;max-width:70ch}
+  .vblock code{font:600 12.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--bg-2);
+    border:1px solid var(--edge);border-radius:6px;padding:2px 6px;color:var(--accent-2)}
+  .steps{display:grid;gap:16px}
+  .step{background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:18px 20px}
+  .step p{color:var(--dim);font-size:14px;margin:0 0 10px}
+  .step .exp{margin-top:12px}
+  .st-h{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+  .os{font-weight:700;font-size:15px}
+  .stt{color:var(--faint);font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+  .cmd{position:relative}
+  .cmd pre,.out{background:#0a0e1a;border:1px solid var(--edge-2);border-radius:11px;padding:13px 15px;
+    overflow-x:auto;margin:0}
+  .cmd pre code,.out code{background:none;border:none;padding:0;color:#dbe4fb;font-size:13px;font-weight:500;line-height:1.6;white-space:pre}
+  :root[data-theme="light"] .cmd pre,:root[data-theme="light"] .out{background:#0d1424}
+  .out{margin-top:10px;opacity:.9}
+  .out code{color:#93b3e6}
+  .copy{position:absolute;top:8px;right:8px;z-index:2;font:600 11px/1 ui-monospace,monospace;
+    color:var(--faint);background:var(--bg-2);border:1px solid var(--edge-2);border-radius:7px;
+    padding:5px 9px;cursor:pointer;transition:color .15s,border-color .15s}
+  .copy:hover{color:var(--text);border-color:var(--accent)}
+  .copy.done{color:var(--accent-2);border-color:var(--accent-2)}
+  .note,.tiny{color:var(--faint);font-size:13px;line-height:1.6;margin-top:16px;max-width:75ch}
+  .tiny{font-size:12.5px;margin-top:14px}
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--edge);border-radius:14px}
+  table.dflow{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+  table.dflow th,table.dflow td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--edge);vertical-align:top}
+  table.dflow thead th{color:var(--faint);font-size:12px;text-transform:uppercase;letter-spacing:.06em;background:var(--bg-2)}
+  table.dflow tbody th{color:var(--text);font-weight:700;width:24%}
+  table.dflow td{color:var(--dim)}
+  table.dflow tr:last-child th,table.dflow tr:last-child td{border-bottom:none}
+  table.dflow .stays{color:var(--accent-2);font-weight:600}
+  .av{background:var(--card);border:1px solid var(--edge);border-radius:18px;margin-top:20px;padding:24px}
+  .av h2{margin-top:0}
+  .av>p{color:var(--dim);font-size:15px;line-height:1.7}
+  .av em{color:var(--text);font-style:normal;font-weight:600}
+  .avlist{margin:14px 0 0;padding-left:20px;display:grid;gap:9px}
+  .avlist li{color:var(--dim);font-size:14px;line-height:1.6}
+  .avlist strong{color:var(--text)}
+  .srcgrid{display:grid;gap:10px;grid-template-columns:repeat(3,1fr)}
+  .src{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--card);
+    border:1px solid var(--edge);border-radius:12px;padding:13px 15px;transition:border-color .15s,transform .15s}
+  .src:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--edge));transform:translateY(-1px)}
+  .sn{font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px}
+  .lx{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--faint);
+    border:1px solid var(--edge);border-radius:5px;padding:2px 5px}
+  .sg{color:var(--accent);font-size:12.5px;font-weight:600;white-space:nowrap}
+  dl.tm{display:grid;gap:0;border:1px solid var(--edge);border-radius:14px;overflow:hidden}
+  dl.tm dt{background:var(--bg-2);color:var(--text);font-weight:700;font-size:14px;padding:12px 16px;border-top:1px solid var(--edge)}
+  dl.tm dt:first-child{border-top:none}
+  dl.tm dd{margin:0;color:var(--dim);font-size:14px;line-height:1.65;padding:12px 16px}
+  .report{background:var(--card);border:1px solid var(--edge);border-radius:18px;margin-top:20px;padding:24px}
+  .report h2{margin-top:0}
+  .report p{color:var(--dim);font-size:15px;line-height:1.7;max-width:75ch}
+  .rbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  @media(max-width:760px){.why3{grid-template-columns:1fr}.srcgrid{grid-template-columns:1fr 1fr}}
+  @media(max-width:520px){.srcgrid{grid-template-columns:1fr}}
+</style>
+
+<script is:inline>
+  document.querySelectorAll('.cmd .copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var code = btn.parentElement.querySelector('code');
+      if (!code) return;
+      navigator.clipboard.writeText(code.textContent).then(function () {
+        btn.textContent = 'Copied';
+        btn.classList.add('done');
+        setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600);
+      }).catch(function () {});
+    });
+  });
+</script>

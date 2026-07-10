@@ -1,0 +1,22 @@
+---
+import Base from '../../../layouts/Base.astro';
+import AppPage from '../../../components/AppPage.astro';
+import { apps } from '../../../data/apps.js';
+import { appMeta } from '../../../data/pageMeta.js';
+import { NON_DEFAULT_LOCALES } from '../../../data/i18n.js';
+
+export function getStaticPaths() {
+  const paths = [];
+  for (const lang of NON_DEFAULT_LOCALES) {
+    for (const app of apps) paths.push({ params: { lang, slug: app.slug }, props: { app } });
+  }
+  return paths;
+}
+const { app } = Astro.props;
+const locale = Astro.params.lang;
+const m = appMeta(app, locale);
+---
+<Base title={m.title} description={m.description} keywords={m.keywords} path={m.path} locale={locale} jsonLd={m.jsonLd}
+      ogImage={m.ogImage} ogImageType={m.ogType} ogImageW={m.ogW} ogImageH={m.ogH} ogImageAlt={m.ogAlt}>
+  <AppPage app={app} locale={locale} />
+</Base>

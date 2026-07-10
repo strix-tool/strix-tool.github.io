@@ -1,0 +1,15 @@
+---
+import Base from '../../layouts/Base.astro';
+import About from '../../components/About.astro';
+import { aboutMeta } from '../../data/pageMeta.js';
+import { NON_DEFAULT_LOCALES } from '../../data/i18n.js';
+
+export function getStaticPaths() {
+  return NON_DEFAULT_LOCALES.map((lang) => ({ params: { lang } }));
+}
+const locale = Astro.params.lang;
+const m = aboutMeta(locale);
+---
+<Base title={m.title} description={m.description} keywords={m.keywords} path={m.path} locale={locale} jsonLd={m.jsonLd}>
+  <About locale={locale} />
+</Base>

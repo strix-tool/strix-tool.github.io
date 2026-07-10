@@ -1,0 +1,66 @@
+---
+import { t, appPath } from '../data/site.js';
+import { getUI, localizeApp, localizePath } from '../data/i18n.js';
+import { apps } from '../data/apps.js';
+import { downloads, assetUrl, checksums, releasesUrl, VERSION } from '../data/downloads.js';
+import AppIcon from './AppIcon.astro';
+const { locale = 'en' } = Astro.props;
+const tt = getUI(locale);
+---
+<section class="wrap dlhead">
+  <h1>{tt.downloadsTitle}</h1>
+  <p class="lead">{tt.downloadsLead}</p>
+  <p class="ver">v{VERSION}</p>
+</section>
+
+<section class="wrap dlist" aria-labelledby="dl-tools">
+  <h2 id="dl-tools" class="dl-h2">{tt.dl.allTools}</h2>
+  {apps.map((a0) => {
+    const a = localizeApp(a0, locale);
+    const dl = downloads[a.slug];
+    return (
+      <div class="dlrow" style={`--ac:${a.accent}`}>
+        <a class="dlapp" href={localizePath(appPath(a.slug), locale)}>
+          <AppIcon id={a.iconId} accent={a.accent} accent2={a.accent2} size={46} />
+          <span>
+            <b>{a.name}</b>
+            <span class="dt">{a.tagline}</span>
+          </span>
+        </a>
+        <div class="dlbtns">
+          {dl.windows && <a class="btn small" href={assetUrl(a.slug, dl.windows.file)} rel="noopener">🪟 Windows</a>}
+          <a class="btn small" href={assetUrl(a.slug, dl.linux.file)} rel="noopener">🐧 Linux</a>
+          <a class="lnk" href={checksums(a.slug)} rel="noopener">SHA-256</a>
+          <a class="lnk" href={releasesUrl(a.slug)} rel="noopener">all releases</a>
+        </div>
+      </div>
+    );
+  })}
+</section>
+
+<section class="wrap" aria-labelledby="dl-verify">
+  <h2 id="dl-verify" class="dl-h2">{tt.dl.verify}</h2>
+  <p class="foot-note">{tt.verified}</p>
+  <p class="foot-note warn">{tt.unsigned}</p>
+</section>
+
+<style>
+  .dlhead{padding:60px 22px 10px;text-align:center}
+  .dlhead h1{font-size:clamp(30px,4.5vw,44px);margin:0 0 12px}
+  .dlhead .lead{color:var(--dim);max-width:60ch;margin:0 auto;font-size:17px}
+  .dlhead .ver{margin-top:14px;color:var(--faint);font-size:13px}
+  .dl-h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);
+    font-weight:700;margin:0 0 4px}
+  .dlist{padding:20px 22px;display:grid;gap:14px}
+  .dlist .dl-h2{margin-bottom:8px}
+  .dlrow{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;
+    background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:16px 20px;transition:border-color .18s}
+  .dlrow:hover{border-color:color-mix(in srgb,var(--ac) 55%,var(--edge))}
+  .dlapp{display:flex;align-items:center;gap:14px;min-width:250px}
+  .dlapp b{font-size:16px}
+  .dlapp .dt{display:block;color:var(--faint);font-size:13px;margin-top:2px}
+  .dlbtns{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .dlbtns .lnk{color:var(--accent);font-size:13px;font-weight:600}
+  .foot-note{color:var(--faint);font-size:13px;max-width:80ch;margin:6px auto}
+  .foot-note.warn{border-left:3px solid #f5a623;padding-left:12px}
+</style>

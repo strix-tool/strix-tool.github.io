@@ -1,0 +1,40 @@
+---
+// Markenzeichen von Strix Advanced Tools: ein sechseckiges Emblem für ein „sicheres Netzwerk" — ein
+// zentraler Hub-Knoten, der mit umkreisenden Knoten verbunden ist (spiegelt den Netzwerk-
+// Hintergrund der Website wider). Wird über die Akzentvariablen der Website eingefärbt.
+const { size = 34 } = Astro.props;
+const uid = Math.random().toString(36).slice(2, 8);
+---
+<svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true"
+     xmlns="http://www.w3.org/2000/svg" class="brandmark">
+  <defs>
+    <linearGradient id={`g${uid}`} x1="6" y1="4" x2="42" y2="45" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--accent)"></stop>
+      <stop offset="1" stop-color="var(--accent-2)"></stop>
+    </linearGradient>
+    <radialGradient id={`h${uid}`} cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="var(--accent-2)"></stop>
+      <stop offset="1" stop-color="var(--accent)"></stop>
+    </radialGradient>
+  </defs>
+  <!-- Sechseck-Rahmen -->
+  <path d="M24 3.2 L42.2 13.6 V34.4 L24 44.8 L5.8 34.4 V13.6 Z"
+        stroke={`url(#g${uid})`} stroke-width="2.4" stroke-linejoin="round"
+        fill="var(--accent)" fill-opacity="0.06"></path>
+  <!-- Verbindungen -->
+  <g stroke={`url(#g${uid})`} stroke-width="1.6" stroke-linecap="round" opacity="0.85">
+    <path d="M24 24 L24 12.5"></path>
+    <path d="M24 24 L34.4 30"></path>
+    <path d="M24 24 L13.6 30"></path>
+    <path d="M24 12.5 L34.4 30 M34.4 30 L13.6 30 M13.6 30 L24 12.5" opacity="0.45"></path>
+  </g>
+  <!-- Orbit-Knoten -->
+  <g fill="#fff">
+    <circle cx="24" cy="12.5" r="2.5"></circle>
+    <circle cx="34.4" cy="30" r="2.5"></circle>
+    <circle cx="13.6" cy="30" r="2.5"></circle>
+  </g>
+  <!-- Hub -->
+  <circle cx="24" cy="24" r="4.4" fill={`url(#h${uid})`}></circle>
+  <circle cx="24" cy="24" r="4.4" fill="none" stroke="#fff" stroke-opacity="0.5" stroke-width="1"></circle>
+</svg>

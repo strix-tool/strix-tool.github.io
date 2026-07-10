@@ -1,0 +1,165 @@
+---
+// Seite „Spenden" (Monero). Privatsphäre zuerst: kein Zahlungsdienstleister, kein
+// Drittanbieter-Skript, keine Netzwerkaufrufe. Die XMR-Adresse und das QR-Bild kommen
+// aus der Konfiguration (data/site.js `DONATE`). Der QR-Code ist ein statisches SVG
+// unter public/xmr-qr.svg — es wird zur Bauzeit eingebettet (kein Build-Abhängigkeit).
+//
+// So aktualisieren, wenn sich die Adresse ändert: `DONATE.xmr` in data/site.js setzen
+// und public/xmr-qr.svg neu erzeugen, z. B.:
+//   npx --yes qrcode -o public/xmr-qr.svg "monero:<ADRESSE>"
+// (das Paket wird nur einmalig zum Erzeugen benötigt und nicht im Projekt gehalten).
+import fs from 'node:fs';
+import { SITE, DONATE, isDonateConfigured, contributePath } from '../data/site.js';
+import { getDonate, localizePath } from '../data/i18n.js';
+import { APP_UPDATED } from '../data/apps.js';
+
+const { locale = 'en' } = Astro.props;
+const d = getDonate(locale);
+const configured = isDonateConfigured();
+
+let qrSvg = null;
+const qrFile = 'public' + DONATE.qr;
+if (configured && fs.existsSync(qrFile)) {
+  qrSvg = fs.readFileSync(qrFile, 'utf8');
+}
+const moneroUri = configured
+  ? `monero:${DONATE.xmr}?tx_description=${encodeURIComponent(SITE.name)}`
+  : null;
+---
+<section class="wrap dhead">
+  <span class="badge">{d.badge}</span>
+  <h1>{d.h1}</h1>
+  <p class="lead">{d.lead}</p>
+  <p class="upd">{d.updatedLabel} <time datetime={APP_UPDATED}>{APP_UPDATED}</time></p>
+</section>
+
+<section class="wrap dcardwrap" aria-labelledby="xmr">
+  <h2 id="xmr" class="sr-only">{d.card.label}</h2>
+  <div class="xmrcard">
+    <div class="qrbox" aria-hidden={qrSvg ? undefined : 'true'}>
+      {qrSvg ? <Fragment set:html={qrSvg} /> : <span class="qrph">{d.card.qrPending}</span>}
+    </div>
+    <div class="addrwrap">
+      <span class="albl">🔒 {d.card.label}</span>
+      {configured ? (
+        <>
+          <code class="addr" id="xmrAddr">{DONATE.xmr}</code>
+          <p class="scan">{d.card.scanHint}</p>
+          <div class="abtns">
+            <button class="btn copy" type="button" data-addr={DONATE.xmr} data-done={d.card.copied}>{d.card.copy}</button>
+            <a class="btn ghost" href={moneroUri} rel="noopener">{d.card.openWallet}</a>
+          </div>
+        </>
+      ) : (
+        <p class="notcfg">{d.card.notConfigured}</p>
+      )}
+    </div>
+  </div>
+</section>
+
+<section class="wrap dblock" aria-labelledby="why">
+  <h2 id="why">{d.why.h2}</h2>
+  <p class="sub">{d.why.sub}</p>
+  <div class="grid3">
+    {d.why.list.map((it) => (
+      <div class="card"><h3>{it.t}</h3><p>{it.d}</p></div>
+    ))}
+  </div>
+</section>
+
+<section class="wrap dblock" aria-labelledby="funds">
+  <h2 id="funds">{d.funds.h2}</h2>
+  <p class="sub">{d.funds.sub}</p>
+  <ul class="fundlist">
+    {d.funds.list.map((it) => (
+      <li><span class="chk" aria-hidden="true">→</span><div><strong>{it.t}</strong><span>{it.d}</span></div></li>
+    ))}
+  </ul>
+</section>
+
+<section class="wrap dblock" aria-labelledby="other">
+  <h2 id="other">{d.otherWays.h2}</h2>
+  <p class="sub">{d.otherWays.sub}</p>
+  <div class="grid3">
+    <a class="card lnk" href={SITE.githubUrl} rel="noopener"><h3>{d.otherWays.list[0].t}</h3><p>{d.otherWays.list[0].d}</p></a>
+    <a class="card lnk" href={localizePath(contributePath(), locale)}><h3>{d.otherWays.list[1].t}</h3><p>{d.otherWays.list[1].d}</p></a>
+    <div class="card"><h3>{d.otherWays.list[2].t}</h3><p>{d.otherWays.list[2].d}</p></div>
+  </div>
+</section>
+
+<section class="wrap dnote">
+  <p>{d.note}</p>
+</section>
+
+<style>
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+  .dhead{padding:60px 22px 6px;text-align:center;max-width:820px}
+  .badge{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--accent-2);background:color-mix(in srgb,var(--accent-2) 12%,transparent);
+    border:1px solid color-mix(in srgb,var(--accent-2) 35%,var(--edge));border-radius:999px;padding:5px 13px;margin-bottom:16px}
+  .dhead h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 14px;text-wrap:balance}
+  .dhead .lead{color:var(--dim);font-size:17px;line-height:1.7;margin:0 auto}
+  .dhead .upd{margin-top:16px;color:var(--faint);font-size:13px}
+  .dcardwrap{padding:30px 22px 6px;max-width:920px}
+  .xmrcard{display:flex;gap:24px;align-items:center;background:var(--card);border:1px solid var(--edge);
+    border-radius:20px;padding:24px}
+  .qrbox{flex:0 0 auto;width:196px;height:196px;background:#fff;border-radius:14px;padding:12px;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+  .qrbox :global(svg){width:100%;height:100%;display:block;shape-rendering:crispEdges}
+  .qrph{color:#6b7280;font-size:12.5px;line-height:1.5;text-align:center;padding:14px;
+    border:1.5px dashed #cbd5e3;border-radius:10px}
+  .addrwrap{flex:1 1 auto;min-width:0}
+  .albl{display:inline-block;font-size:12.5px;font-weight:700;letter-spacing:.04em;color:var(--faint);
+    text-transform:uppercase;margin-bottom:10px}
+  .addr{display:block;font:600 13.5px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--accent-2);
+    background:var(--bg-2);border:1px solid var(--edge);border-radius:11px;padding:13px 15px;
+    word-break:break-all;user-select:all}
+  .scan{color:var(--dim);font-size:13.5px;line-height:1.6;margin:12px 0 0}
+  .abtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px;
+    background:var(--accent);color:#04121f;border:1px solid var(--accent);border-radius:11px;
+    padding:10px 18px;cursor:pointer;transition:transform .15s,box-shadow .15s;font-family:inherit}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px color-mix(in srgb,var(--accent) 35%,transparent)}
+  .btn.ghost{background:transparent;color:var(--text);border-color:var(--edge-2)}
+  .btn.ghost:hover{border-color:var(--accent);box-shadow:none}
+  .btn.copy.done{background:var(--accent-2);border-color:var(--accent-2)}
+  .notcfg{color:var(--faint);font-size:14px;line-height:1.6;margin:0;padding:14px 16px;
+    background:var(--bg-2);border:1px dashed var(--edge-2);border-radius:11px}
+  .dblock{padding:38px 22px 6px;max-width:920px}
+  .dblock h2{font-size:clamp(22px,3vw,28px);margin:0 0 8px}
+  .dblock .sub{color:var(--dim);font-size:15px;line-height:1.65;margin:0 0 22px;max-width:72ch}
+  .grid3{display:grid;gap:14px;grid-template-columns:repeat(3,1fr)}
+  .card{background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:18px 20px}
+  .card h3{margin:0 0 7px;font-size:16px}
+  .card p{color:var(--dim);font-size:14px;line-height:1.6;margin:0}
+  a.card.lnk{transition:border-color .15s,transform .15s}
+  a.card.lnk:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--edge));transform:translateY(-1px)}
+  a.card.lnk h3::after{content:' ↗';color:var(--accent);font-size:13px}
+  ul.fundlist{list-style:none;margin:0;padding:0;display:grid;gap:11px}
+  ul.fundlist li{display:flex;gap:13px;align-items:flex-start;background:var(--card);border:1px solid var(--edge);
+    border-radius:13px;padding:15px 18px}
+  .chk{flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:14px;font-weight:800;color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);
+    border:1px solid color-mix(in srgb,var(--accent) 34%,var(--edge))}
+  ul.fundlist strong{display:block;font-size:15px;margin-bottom:3px}
+  ul.fundlist span{color:var(--dim);font-size:14px;line-height:1.55}
+  .dnote{padding:26px 22px 10px;max-width:920px}
+  .dnote p{color:var(--faint);font-size:13.5px;line-height:1.7;max-width:80ch;margin:0}
+  @media(max-width:760px){.xmrcard{flex-direction:column;text-align:center}.addrwrap{width:100%}
+    .albl{text-align:left}.abtns{justify-content:center}.grid3{grid-template-columns:1fr}}
+</style>
+
+<script is:inline>
+  document.querySelectorAll('.copy[data-addr]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var addr = btn.getAttribute('data-addr');
+      if (!addr) return;
+      navigator.clipboard.writeText(addr).then(function () {
+        var prev = btn.textContent;
+        btn.textContent = btn.getAttribute('data-done') || 'Copied ✓';
+        btn.classList.add('done');
+        setTimeout(function () { btn.textContent = prev; btn.classList.remove('done'); }, 1600);
+      }).catch(function () {});
+    });
+  });
+</script>

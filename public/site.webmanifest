@@ -1,0 +1,14 @@
+{
+  "name": "Strix Advanced Tools",
+  "short_name": "Strix",
+  "description": "Open-source, offline privacy & security tools for Windows and Linux.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#090b12",
+  "theme_color": "#090b12",
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any" }
+  ],
+  "categories": ["utilities", "security", "productivity"]
+}

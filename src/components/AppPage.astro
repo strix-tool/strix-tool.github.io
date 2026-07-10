@@ -1,0 +1,244 @@
+---
+import { t, homePath, appPath } from '../data/site.js';
+import { getUI, localizeApp, categoryLabel, localizePath } from '../data/i18n.js';
+import { repoUrl, releasesUrl, apps } from '../data/apps.js';
+import { downloads, assetUrl, checksums, kindLabel } from '../data/downloads.js';
+import AppIcon from './AppIcon.astro';
+import Screenshots from './Screenshots.astro';
+const { app: app0, locale = 'en' } = Astro.props;
+const tt = getUI(locale);
+const app = localizeApp(app0, locale);
+const dl = downloads[app.slug];
+const debName = dl.linux.file;
+const runCmd = {
+  'strix-metavault': 'strix-metavault',
+  'strix-pulse-monitor': 'strix-pulse-monitor',
+  'strix-sentinel': 'sentinel all',
+  'strix-inspector': 'strix-inspector info',
+  'strix-disk-cleaner': 'strixwipe list',
+  'strix-vantage': 'sudo python3 vantage.py localhost:3000 --profile stealth',
+}[app.slug];
+const winText = tt.app.winInstall;
+const linuxInstall = app.linuxOnly
+  ? `git clone https://github.com/strix-tool/${app.slug}\ncd ${app.slug}\n${runCmd}`
+  : `sudo apt install ./${debName}\n${runCmd}`;
+const related = [
+  ...apps.filter((x) => x.slug !== app.slug && x.category === app.category),
+  ...apps.filter((x) => x.slug !== app.slug && x.category !== app.category),
+].slice(0, 3);
+---
+<div class="wrap crumb"><a href={localizePath(homePath(), locale)}>← {tt.backHome}</a></div>
+
+<section class="wrap apphead">
+  <AppIcon id={app.iconId} accent={app.accent} accent2={app.accent2} size={68} />
+  <div class="ah-text">
+    <h1>{app.name}</h1>
+    <div class="ah-tag">{app.tagline}</div>
+    <div class="ah-pills">
+      {app.platforms.map((p) => <span class="pill">{p}</span>)}
+      <span class="pill">{categoryLabel(app.category, locale)}</span>
+      <span class="pill">{app.tech}</span>
+    </div>
+  </div>
+</section>
+
+<section class="wrap intro">
+  {app.danger && (
+    <div class="danger">⚠️ {app.dangerText || tt.app.dangerFallback}</div>
+  )}
+  {app.definition && <p class="def">{app.definition}</p>}
+  <p class="lede">{app.summary}</p>
+
+  <dl class="fastfacts" aria-label={`${app.name} — ${tt.app.glance}`}>
+    <div><dt>{tt.app.price}</dt><dd>{tt.app.priceVal}</dd></div>
+    <div><dt>{tt.app.platforms}</dt><dd>{app.platforms.join(', ')}</dd></div>
+    <div><dt>{tt.app.category}</dt><dd>{categoryLabel(app.category, locale)}</dd></div>
+    <div><dt>{tt.app.builtWith}</dt><dd>{app.tech}</dd></div>
+    {app.alternativeTo && app.alternativeTo.length > 0 && (
+      <div><dt>{tt.app.altTo}</dt><dd>{app.alternativeTo.join(', ')}</dd></div>
+    )}
+    <div><dt>{tt.app.telemetry}</dt><dd>{tt.app.telemetryVal}</dd></div>
+    <div><dt>{tt.app.updated}</dt><dd><time datetime={app.updated}>{app.updated}</time></dd></div>
+  </dl>
+</section>
+
+<section class="wrap shots-sec">
+  <h2>{tt.screenshots}</h2>
+  <Screenshots app={app} />
+</section>
+
+<section class="wrap cols">
+  <div class="col-main">
+    <div class="panel">
+      <h2>{tt.features}</h2>
+      <ul class="feat">{app.features.map((f) => <li>{f}</li>)}</ul>
+    </div>
+    {app.notFor && app.notFor.length > 0 && (
+      <div class="panel">
+        <h2>{tt.app.notDo.replace('{name}', app.name)}</h2>
+        <ul class="notfor">{app.notFor.map((n) => <li>{n}</li>)}</ul>
+      </div>
+    )}
+    <div class="panel">
+      <h2>{tt.install}</h2>
+      {!app.linuxOnly && <h3 class="ih">🪟 {tt.installWindows}</h3>}
+      {!app.linuxOnly && <p class="idesc">{winText}</p>}
+      <h3 class="ih">🐧 {tt.installLinux}</h3>
+      <div class="codewrap">
+        <button class="copybtn" type="button" data-copy aria-label="Copy commands">{tt.app.copy}</button>
+        <pre><code>{linuxInstall}</code></pre>
+      </div>
+    </div>
+    {app.faq && (
+      <div class="panel">
+        <h2>{tt.faqTitle}</h2>
+        {app.faq.map(([q, a]) => (
+          <details class="faq"><summary>{q}</summary><p>{a}</p></details>
+        ))}
+      </div>
+    )}
+    {app.credits && (
+      <div class="panel">
+        <h2>{tt.app.poweredBy}</h2>
+        <p class="idesc">{app.credits.note}</p>
+        <div class="ah-pills">{app.credits.tools.map((tl) => <span class="pill">{tl}</span>)}</div>
+        <a class="btn small" style="margin-top:14px" href={app.credits.href} rel="noopener">{tt.app.fullAck}</a>
+      </div>
+    )}
+    {related.length > 0 && (
+      <div class="panel">
+        <h2>{tt.app.related}</h2>
+        <div class="related">
+          {related.map((r0) => { const r = localizeApp(r0, locale); return (
+            <a class="relcard" href={localizePath(appPath(r.slug), locale)}>
+              <AppIcon id={r.iconId} accent={r.accent} accent2={r.accent2} size={34} />
+              <div><b>{r.name}</b><span>{r.tagline}</span></div>
+            </a>
+          ); })}
+        </div>
+      </div>
+    )}
+  </div>
+
+  <aside class="col-side">
+    <div class="panel dlpanel">
+      <h2>{tt.download}</h2>
+      {dl.windows && (
+        <a class="btn primary block" href={assetUrl(app.slug, dl.windows.file)} rel="noopener">
+          🪟 {tt.downloadCta} · Windows
+        </a>
+      )}
+      {dl.windows && <span class="dlsub">{kindLabel[dl.windows.kind]}</span>}
+      <a class:list={["btn", "block", { primary: !dl.windows }]} href={assetUrl(app.slug, dl.linux.file)} rel="noopener">
+        🐧 {tt.downloadCta} · Linux
+      </a>
+      <span class="dlsub">{kindLabel[dl.linux.kind]}</span>
+      <div class="dllinks">
+        <a href={releasesUrl(app.slug)} rel="noopener">{tt.otherDownloads}</a>
+        <a href={checksums(app.slug)} rel="noopener">SHA-256</a>
+      </div>
+      <p class="note">{tt.verified}</p>
+      {!app.linuxOnly && <p class="note warn">{tt.unsigned}</p>}
+    </div>
+    <div class="panel">
+      <h3 class="side-h">{tt.security}</h3>
+      <p class="idesc">{tt.securityNote}</p>
+      <a class="btn small" href={`${repoUrl(app.slug)}/blob/main/SECURITY.md`} rel="noopener">SECURITY.md →</a>
+    </div>
+    <div class="panel">
+      <h3 class="side-h">{tt.source} · {tt.docs}</h3>
+      <div class="dllinks col">
+        <a href={repoUrl(app.slug)} rel="noopener">⌥ {tt.source} (GitHub)</a>
+        <a href={`${repoUrl(app.slug)}#readme`} rel="noopener">📖 {tt.readme}</a>
+      </div>
+    </div>
+  </aside>
+</section>
+
+<style>
+  .crumb{padding-top:22px}
+  .crumb a{color:var(--dim);font-size:14px}
+  .crumb a:hover{color:var(--accent)}
+  .apphead{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:26px 22px 6px}
+  .apphead h1{margin:0;font-size:clamp(28px,4vw,40px)}
+  .ah-tag{color:var(--dim);margin-top:5px;font-size:17px}
+  .ah-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+  .intro{padding:8px 22px}
+  .lede{color:var(--dim);max-width:74ch;font-size:16.5px}
+  .def{color:var(--text);font-size:19px;font-weight:600;line-height:1.5;max-width:70ch;margin:0 0 10px}
+  .fastfacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;margin:20px 0 2px;
+    background:var(--edge);border:1px solid var(--edge);border-radius:14px;overflow:hidden}
+  .fastfacts>div{background:var(--card);padding:11px 16px}
+  .fastfacts dt{color:var(--faint);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin:0 0 3px}
+  .fastfacts dd{margin:0;font-size:14px;color:var(--text);font-weight:600}
+  .notfor{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+  .notfor li{padding-left:26px;position:relative;font-size:14.5px;color:var(--dim)}
+  .notfor li::before{content:"✕";position:absolute;left:2px;top:0;color:#ff7a90;font-weight:800;font-size:13px}
+  .related{display:grid;gap:10px}
+  .relcard{display:flex;gap:12px;align-items:center;padding:11px 14px;border:1px solid var(--edge);
+    border-radius:12px;background:var(--bg-2);transition:border-color .15s,transform .15s}
+  .relcard:hover{border-color:color-mix(in srgb,var(--accent) 50%,var(--edge));transform:translateY(-1px)}
+  .relcard b{display:block;font-size:14.5px;color:var(--text)}
+  .relcard span{display:block;font-size:12.5px;color:var(--dim);margin-top:2px}
+  .danger{background:color-mix(in srgb,#ef4444 13%,var(--card));border:1px solid color-mix(in srgb,#ef4444 42%,var(--edge));
+    border-radius:12px;padding:12px 16px;font-size:14.5px;margin-bottom:16px}
+  .shots-sec{padding:26px 22px}
+  .shots-sec h2{font-size:22px;margin:0 0 18px}
+  .cols{display:grid;gap:24px;grid-template-columns:1.5fr .9fr;align-items:start;padding:16px 22px 20px}
+  @media(max-width:880px){.cols{grid-template-columns:1fr}}
+  .col-main{display:grid;gap:20px}
+  .col-side{display:grid;gap:16px;position:sticky;top:86px}
+  @media(max-width:880px){.col-side{position:static}}
+  .panel{background:var(--card);border:1px solid var(--edge);border-radius:var(--r);padding:22px}
+  .panel h2{font-size:19px;margin:0 0 14px}
+  .side-h{font-size:15px;margin:0 0 10px}
+  ul.feat{list-style:none;padding:0;margin:0;display:grid;gap:11px}
+  ul.feat li{padding-left:28px;position:relative;font-size:14.5px}
+  ul.feat li::before{content:"";position:absolute;left:0;top:6px;width:16px;height:16px;border-radius:5px;
+    background:var(--grad);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent)}
+  ul.feat li::after{content:"✓";position:absolute;left:3px;top:3px;color:#fff;font-size:11px;font-weight:800}
+  .ih{font-size:15px;margin:6px 0 6px}
+  .idesc{color:var(--dim);font-size:14px;margin:0 0 10px}
+  pre{background:var(--bg-2);border:1px solid var(--edge);border-radius:12px;padding:14px 16px;overflow-x:auto;font-size:13.5px}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .faq{border-top:1px solid var(--edge);padding:12px 0}
+  .faq:first-of-type{border-top:none}
+  .faq summary{cursor:pointer;font-weight:600;font-size:15px;list-style:none}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::before{content:"+ ";color:var(--accent);font-weight:800}
+  .faq[open] summary::before{content:"– "}
+  .faq p{color:var(--dim);font-size:14px;margin:10px 0 4px}
+  .dlpanel .block{margin-bottom:4px}
+  .dlsub{display:block;color:var(--faint);font-size:12px;margin:0 0 12px 2px}
+  .dllinks{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px}
+  .dllinks.col{flex-direction:column;gap:8px}
+  .dllinks a{color:var(--accent);font-size:13.5px;font-weight:600}
+  .note{font-size:12.5px;color:var(--faint);margin:14px 0 0;line-height:1.5}
+  .note.warn{border-left:3px solid #f5a623;padding-left:10px}
+  .codewrap{position:relative}
+  .codewrap pre{margin:0}
+  .copybtn{position:absolute;top:8px;right:8px;z-index:2;font:600 12px/1 inherit;
+    padding:7px 11px;border-radius:8px;border:1px solid var(--edge);background:var(--card);
+    color:var(--dim);cursor:pointer;transition:color .15s,border-color .15s,opacity .15s;opacity:.65}
+  .codewrap:hover .copybtn{opacity:1}
+  .copybtn:hover{color:var(--text);border-color:color-mix(in srgb,var(--accent) 55%,var(--edge))}
+  .copybtn.done{color:var(--accent-2);border-color:color-mix(in srgb,var(--accent-2) 50%,var(--edge));opacity:1}
+</style>
+
+<script>
+  document.querySelectorAll('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const code = btn.parentElement.querySelector('code');
+      if (!code) return;
+      const label = btn.textContent;
+      try {
+        await navigator.clipboard.writeText(code.innerText);
+        btn.textContent = 'Copied ✓'; btn.classList.add('done');
+        setTimeout(() => { btn.textContent = label; btn.classList.remove('done'); }, 1600);
+      } catch (e) {
+        const r = document.createRange(); r.selectNodeContents(code);
+        const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      }
+    });
+  });
+</script>

@@ -1,0 +1,102 @@
+name: Tool submission
+description: Propose your open-source tool for inclusion in Strix Advanced Tools.
+title: "[Tool] <your tool name>"
+labels: ["tool-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a tool! Every submission goes through the same security
+        review and hardening pass the existing tools passed before launch. Please read
+        **[CONTRIBUTING-TOOLS.md](../blob/main/CONTRIBUTING-TOOLS.md)** first, then fill
+        this in. You keep authorship and the copyright — Strix co-maintains and
+        distributes your tool with you.
+  - type: input
+    id: name
+    attributes:
+      label: Tool name
+      placeholder: e.g. Strix Beacon
+    validations:
+      required: true
+  - type: input
+    id: repo
+    attributes:
+      label: Repository URL
+      description: A public repository we can read, build and review.
+      placeholder: https://github.com/you/your-tool
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What does it do?
+      description: One or two sentences — the one job it does, and who it is for.
+    validations:
+      required: true
+  - type: dropdown
+    id: platforms
+    attributes:
+      label: Target platforms
+      multiple: true
+      options:
+        - Windows
+        - Linux
+        - macOS
+    validations:
+      required: true
+  - type: dropdown
+    id: license
+    attributes:
+      label: License
+      description: Must be MIT or another MIT-compatible permissive license.
+      options:
+        - MIT
+        - ISC
+        - BSD-2-Clause
+        - BSD-3-Clause
+        - Apache-2.0
+        - Other (explain below)
+    validations:
+      required: true
+  - type: dropdown
+    id: network
+    attributes:
+      label: Does the tool make network connections?
+      options:
+        - "No — fully offline"
+        - "Yes — networking is the tool's whole purpose (recon/OSINT), key-less & consent-gated"
+        - "Yes — other (explain in notes)"
+    validations:
+      required: true
+  - type: textarea
+    id: notdo
+    attributes:
+      label: What does it deliberately NOT do?
+      description: The scope limits — the things it will not touch. This matters as much as the features.
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else (optional)
+      description: Existing tests, threat model, dependencies, prior security review, or open questions.
+    validations:
+      required: false
+  - type: checkboxes
+    id: criteria
+    attributes:
+      label: It meets the Strix criteria
+      description: All of these are required. If one isn't true yet, that's fine — say so in the notes and we'll help.
+      options:
+        - label: Open source under an MIT-compatible license, nothing obfuscated
+          required: true
+        - label: Zero telemetry — no analytics SDK, no phone-home, no accounts
+          required: true
+        - label: Offline by default (or, if networking is its purpose, key-less and gated behind explicit consent)
+          required: true
+        - label: Least privilege — no shell-outs, no dynamic code execution, argv-only subprocess calls
+          required: true
+        - label: Has (or will have) a README and a SECURITY.md, plus tests for anything safety-critical
+          required: true
+        - label: I am the author (or authorized) and I keep the copyright; I agree it may be distributed under MIT
+          required: true

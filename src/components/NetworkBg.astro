@@ -1,0 +1,107 @@
+---
+// Interaktiver Hintergrund „digitales Netzwerk": treibende Knoten, verbunden durch Linien, die
+// auf den Cursor reagieren. Eigenständiges Vanilla-Canvas (keine externen Bibliotheken), Theme-
+// bewusst, für die Performance begrenzt und unter prefers-reduced-motion deaktiviert.
+---
+<canvas id="netbg" aria-hidden="true"></canvas>
+<style>
+  #netbg{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;opacity:.6}
+  :root[data-theme="light"] #netbg{opacity:.45}
+</style>
+<script is:inline>
+  (function () {
+    var c = document.getElementById('netbg');
+    if (!c || !c.getContext) return;
+    var ctx = c.getContext('2d');
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var DPR = Math.min(window.devicePixelRatio || 1, 2);
+    var W = 0, H = 0, nodes = [], raf = 0;
+    var mouse = { x: -9999, y: -9999, on: false };
+
+    function accents() {
+      var s = getComputedStyle(document.documentElement);
+      return [(s.getPropertyValue('--accent') || '#7c6cff').trim(),
+              (s.getPropertyValue('--accent-2') || '#33d0ba').trim()];
+    }
+    function rgb(h) {
+      h = h.replace('#', '');
+      if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      var n = parseInt(h, 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+    var A = rgb(accents()[0]), B = rgb(accents()[1]);
+    function refreshColors() { var a = accents(); A = rgb(a[0]); B = rgb(a[1]); }
+
+    function resize() {
+      W = c.clientWidth; H = c.clientHeight;
+      c.width = W * DPR; c.height = H * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      var target = Math.max(24, Math.min(90, Math.floor(W * H / 16000)));
+      nodes = [];
+      for (var i = 0; i < target; i++) {
+        nodes.push({ x: Math.random() * W, y: Math.random() * H,
+          vx: (Math.random() - 0.5) * 0.28, vy: (Math.random() - 0.5) * 0.28 });
+      }
+    }
+
+    var LINK = 130, MLINK = 175;
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      var i, j, n, a, b, dx, dy, d, t;
+      for (i = 0; i < nodes.length; i++) {
+        n = nodes[i];
+        if (!reduce) { n.x += n.vx; n.y += n.vy; }
+        if (n.x < 0 || n.x > W) n.vx *= -1;
+        if (n.y < 0 || n.y > H) n.vy *= -1;
+        if (mouse.on) {
+          dx = mouse.x - n.x; dy = mouse.y - n.y; d = Math.hypot(dx, dy);
+          if (d < MLINK && d > 0.5) { n.x += dx / d * 0.5; n.y += dy / d * 0.5; }
+        }
+        n.x = Math.max(0, Math.min(W, n.x)); n.y = Math.max(0, Math.min(H, n.y));
+      }
+      for (i = 0; i < nodes.length; i++) {
+        for (j = i + 1; j < nodes.length; j++) {
+          a = nodes[i]; b = nodes[j]; dx = a.x - b.x; dy = a.y - b.y; d = Math.hypot(dx, dy);
+          if (d < LINK) {
+            t = 1 - d / LINK;
+            ctx.strokeStyle = 'rgba(' + A[0] + ',' + A[1] + ',' + A[2] + ',' + (t * 0.32) + ')';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+          }
+        }
+      }
+      if (mouse.on) {
+        for (i = 0; i < nodes.length; i++) {
+          n = nodes[i]; dx = n.x - mouse.x; dy = n.y - mouse.y; d = Math.hypot(dx, dy);
+          if (d < MLINK) {
+            t = 1 - d / MLINK;
+            ctx.strokeStyle = 'rgba(' + B[0] + ',' + B[1] + ',' + B[2] + ',' + (t * 0.55) + ')';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath(); ctx.moveTo(n.x, n.y); ctx.lineTo(mouse.x, mouse.y); ctx.stroke();
+          }
+        }
+        ctx.fillStyle = 'rgba(' + B[0] + ',' + B[1] + ',' + B[2] + ',0.9)';
+        ctx.beginPath(); ctx.arc(mouse.x, mouse.y, 3, 0, 6.283); ctx.fill();
+      }
+      for (i = 0; i < nodes.length; i++) {
+        n = nodes[i];
+        ctx.fillStyle = 'rgba(' + A[0] + ',' + A[1] + ',' + A[2] + ',0.8)';
+        ctx.beginPath(); ctx.arc(n.x, n.y, 1.6, 0, 6.283); ctx.fill();
+      }
+    }
+    function loop() { draw(); raf = requestAnimationFrame(loop); }
+
+    window.addEventListener('resize', resize, { passive: true });
+    window.addEventListener('mousemove', function (e) { mouse.x = e.clientX; mouse.y = e.clientY; mouse.on = true; }, { passive: true });
+    window.addEventListener('mouseout', function () { mouse.on = false; mouse.x = mouse.y = -9999; }, { passive: true });
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { cancelAnimationFrame(raf); raf = 0; }
+      else if (!raf && !reduce) loop();
+    });
+    var mo = new MutationObserver(refreshColors);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    resize();
+    if (reduce) { draw(); } else { loop(); }   // statischer Einzelframe bei reduzierter Bewegung
+  })();
+</script>

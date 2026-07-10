@@ -1,0 +1,86 @@
+---
+// Seite „Alternativen": bildet proprietäre/geschlossene Tools auf ihr quelloffenes
+// Strix-Pendant ab. Die Zuordnung stammt aus apps.js (`alternativeTo`, Eigennamen –
+// nicht übersetzt); nur der Seitenrahmen wird aus `alternatives` lokalisiert.
+import { apps } from '../data/apps.js';
+import { SITE, appPath, contributePath } from '../data/site.js';
+import { getAlternatives, localizeApp, localizePath, categoryLabel } from '../data/i18n.js';
+import { APP_UPDATED } from '../data/apps.js';
+import AppIcon from './AppIcon.astro';
+
+const { locale = 'en' } = Astro.props;
+const alt = getAlternatives(locale);
+const lapps = apps
+  .filter((a) => a.alternativeTo && a.alternativeTo.length)
+  .map((a) => localizeApp(a, locale));
+---
+<section class="wrap lhead">
+  <span class="badge">{alt.badge}</span>
+  <h1>{alt.h1}</h1>
+  <p class="lead">{alt.lead}</p>
+  <p class="upd">{alt.updatedLabel} <time datetime={APP_UPDATED}>{APP_UPDATED}</time></p>
+</section>
+
+<section class="wrap lgrid" aria-label={alt.h1}>
+  {lapps.map((a) => (
+    <article class="lcard">
+      <div class="lc-h">
+        <AppIcon id={a.iconId} accent={a.accent} accent2={a.accent2} size={40} />
+        <div>
+          <a class="lc-name" href={localizePath(appPath(a.slug), locale)}>{a.name}</a>
+          <span class="lc-cat">{categoryLabel(a.category, locale)}</span>
+        </div>
+      </div>
+      <p class="lc-altlbl">{alt.altToLabel}</p>
+      <ul class="chips">
+        {a.alternativeTo.map((x) => (<li>{x}</li>))}
+      </ul>
+      <p class="lc-tag">{a.tagline}</p>
+      <a class="lc-link" href={localizePath(appPath(a.slug), locale)}>{alt.viewTool}</a>
+    </article>
+  ))}
+</section>
+
+<section class="wrap lcta" aria-labelledby="lcta">
+  <h2 id="lcta">{alt.ctaLead}</h2>
+  <p>{alt.ctaText}</p>
+  <div class="lbtns">
+    <a class="btn" href={localizePath('/downloads/', locale)}>{alt.ctaAll}</a>
+    <a class="btn ghost" href={localizePath(contributePath(), locale)}>{alt.ctaSuggest}</a>
+  </div>
+</section>
+
+<style>
+  .lhead{padding:60px 22px 6px;text-align:center;max-width:800px}
+  .badge{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);
+    border:1px solid color-mix(in srgb,var(--accent) 35%,var(--edge));border-radius:999px;padding:5px 13px;margin-bottom:16px}
+  .lhead h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 14px;text-wrap:balance}
+  .lhead .lead{color:var(--dim);font-size:17px;line-height:1.7;margin:0 auto}
+  .lhead .upd{margin-top:16px;color:var(--faint);font-size:13px}
+  .lgrid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));padding:30px 22px 6px;max-width:1080px}
+  .lcard{background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:20px;display:flex;flex-direction:column}
+  .lc-h{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+  .lc-name{font-weight:700;font-size:16px;display:block}
+  .lc-name:hover{color:var(--accent)}
+  .lc-cat{color:var(--faint);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+  .lc-altlbl{color:var(--faint);font-size:12px;text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px;font-weight:600}
+  .chips{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-wrap:wrap;gap:7px}
+  .chips li{font-size:13px;font-weight:600;color:var(--text);background:var(--bg-2);
+    border:1px solid var(--edge);border-radius:8px;padding:5px 10px}
+  .lc-tag{color:var(--dim);font-size:14px;line-height:1.6;margin:0 0 14px;flex:1}
+  .lc-link{color:var(--accent);font-size:13.5px;font-weight:600;margin-top:auto}
+  .lc-link:hover{text-decoration:underline}
+  .lcta{padding:34px 22px 6px;max-width:920px;text-align:center;margin-top:20px;
+    background:var(--card);border:1px solid var(--edge);border-radius:18px}
+  .lcta{padding:28px 26px}
+  .lcta h2{margin:0 0 8px;font-size:clamp(20px,2.6vw,26px)}
+  .lcta p{color:var(--dim);font-size:15px;line-height:1.7;margin:0 auto;max-width:60ch}
+  .lbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px;
+    background:var(--accent);color:#04121f;border:1px solid var(--accent);border-radius:11px;
+    padding:11px 20px;transition:transform .15s,box-shadow .15s}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px color-mix(in srgb,var(--accent) 35%,transparent)}
+  .btn.ghost{background:transparent;color:var(--text);border-color:var(--edge-2)}
+  .btn.ghost:hover{border-color:var(--accent);box-shadow:none}
+</style>

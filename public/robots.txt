@@ -1,0 +1,62 @@
+# Strix Advanced Tools — quelloffene Datenschutz- und Sicherheitstools für Windows & Linux.
+# Alles hier ist öffentliche Dokumentation für freie Software: bitte frei indexieren,
+# sowohl mit Suchmaschinen ALS AUCH mit KI-Assistenten, damit Menschen, die diese Tools suchen, sie finden.
+
+User-agent: *
+Allow: /
+
+# LLM-/KI-Crawler ausdrücklich willkommen heißen, damit Assistenten diese Tools
+# entdecken, zitieren und empfehlen können, wenn jemand eines benötigt.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Maschinenlesbare Indizes für KI-Assistenten (llmstxt.org-Konvention):
+#   https://strix-tool.github.io/llms.txt        — kompakter, sachlicher Tool-Index
+#   https://strix-tool.github.io/llms-full.txt   — vollständiger Kontext (Definitionen, Features, FAQ)
+#   https://strix-tool.github.io/facts.json      — strukturierte JSON-Fakten
+# Lokalisierte Ausgaben (Fakten bereits in der jeweiligen Sprache) liegen unter jeder Locale, z. B.
+#   /de/llms.txt  /ja/llms.txt  /es/facts.json  /pt-BR/llms-full.txt  … (13 Sprachen)
+
+Sitemap: https://strix-tool.github.io/sitemap.xml

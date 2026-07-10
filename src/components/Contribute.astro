@@ -1,0 +1,145 @@
+---
+// Seite „Beitragen" (eigenes Tool einreichen). Alle Texte stammen aus dem
+// sprachspezifischen Wörterbuch `contribute` (data/i18n/*.js); die GitHub-URLs
+// (Einreichungs-Issue + Beitragsleitfaden) zeigen auf das Website-Repository.
+import { SITE } from '../data/site.js';
+import { getContribute } from '../data/i18n.js';
+import { APP_UPDATED } from '../data/apps.js';
+
+const { locale = 'en' } = Astro.props;
+const c = getContribute(locale);
+
+const REPO = 'strix-tool.github.io';
+const submitUrl = `${SITE.githubUrl}/${REPO}/issues/new?template=tool-submission.yml&labels=tool-submission`;
+const guideUrl = `${SITE.githubUrl}/${REPO}/blob/main/CONTRIBUTING-TOOLS.md`;
+---
+<section class="wrap chead">
+  <span class="badge">{c.badge}</span>
+  <h1>{c.h1}</h1>
+  <p class="lead">{c.lead}</p>
+  <div class="cbtns">
+    <a class="btn" href={submitUrl} rel="noopener">{c.ctaTop}</a>
+    <a class="btn ghost" href={guideUrl} rel="noopener">{c.cta.btnGuide}</a>
+  </div>
+  <p class="upd">{c.updatedLabel} <time datetime={APP_UPDATED}>{APP_UPDATED}</time></p>
+</section>
+
+<section class="wrap cblock" aria-labelledby="how">
+  <h2 id="how">{c.steps.h2}</h2>
+  <p class="sub">{c.steps.sub}</p>
+  <ol class="steps">
+    {c.steps.list.map((s) => (
+      <li class="step">
+        <span class="num">{s.n}</span>
+        <div><h3>{s.t}</h3><p>{s.d}</p></div>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<section class="wrap cblock" aria-labelledby="crit">
+  <h2 id="crit">{c.criteria.h2}</h2>
+  <p class="sub">{c.criteria.sub}</p>
+  <div class="grid3">
+    {c.criteria.list.map((it) => (
+      <div class="card"><h3>{it.t}</h3><p>{it.d}</p></div>
+    ))}
+  </div>
+</section>
+
+<section class="wrap cblock" aria-labelledby="rev">
+  <h2 id="rev">{c.review.h2}</h2>
+  <p class="sub">{c.review.sub}</p>
+  <ul class="pipeline">
+    {c.review.list.map((it) => (
+      <li><span class="chk" aria-hidden="true">✓</span><div><strong>{it.t}</strong><span>{it.d}</span></div></li>
+    ))}
+  </ul>
+</section>
+
+<section class="wrap cblock" aria-labelledby="keep">
+  <h2 id="keep">{c.keep.h2}</h2>
+  <p class="sub">{c.keep.sub}</p>
+  <div class="grid2">
+    {c.keep.list.map((it) => (
+      <div class="card"><h3>{it.t}</h3><p>{it.d}</p></div>
+    ))}
+  </div>
+</section>
+
+<section class="wrap cblock cta" aria-labelledby="cta">
+  <h2 id="cta">{c.cta.h2}</h2>
+  <p>{c.cta.p}</p>
+  <div class="cbtns">
+    <a class="btn" href={submitUrl} rel="noopener">{c.cta.btnSubmit}</a>
+    <a class="btn ghost" href={guideUrl} rel="noopener">{c.cta.btnGuide}</a>
+  </div>
+  <p class="note">{c.cta.note}</p>
+</section>
+
+<section class="wrap cblock" aria-labelledby="cfaq">
+  <h2 id="cfaq">FAQ</h2>
+  <div class="faq">
+    {c.faq.map(([q, a]) => (
+      <details><summary>{q}</summary><p>{a}</p></details>
+    ))}
+  </div>
+</section>
+
+<style>
+  .chead{padding:60px 22px 6px;text-align:center;max-width:820px}
+  .badge{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);
+    border:1px solid color-mix(in srgb,var(--accent) 35%,var(--edge));border-radius:999px;padding:5px 13px;margin-bottom:16px}
+  .chead h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 14px;text-wrap:balance}
+  .chead .lead{color:var(--dim);font-size:17px;line-height:1.7;margin:0 auto}
+  .cbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:22px}
+  .cblock .cbtns{justify-content:flex-start}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px;
+    background:var(--accent);color:#04121f;border:1px solid var(--accent);border-radius:11px;
+    padding:11px 20px;transition:transform .15s,box-shadow .15s}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px color-mix(in srgb,var(--accent) 35%,transparent)}
+  .btn.ghost{background:transparent;color:var(--text);border-color:var(--edge-2)}
+  .btn.ghost:hover{border-color:var(--accent);box-shadow:none}
+  .chead .upd{margin-top:18px;color:var(--faint);font-size:13px}
+  .cblock{padding:38px 22px 6px;max-width:920px}
+  .cblock h2{font-size:clamp(22px,3vw,28px);margin:0 0 8px}
+  .cblock .sub{color:var(--dim);font-size:15px;line-height:1.65;margin:0 0 22px;max-width:72ch}
+  .cblock code{font:600 12.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--bg-2);
+    border:1px solid var(--edge);border-radius:6px;padding:2px 6px;color:var(--accent-2)}
+  ol.steps{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+  .step{display:flex;gap:16px;align-items:flex-start;background:var(--card);border:1px solid var(--edge);
+    border-radius:16px;padding:20px 22px}
+  .step .num{flex:0 0 auto;font:800 15px/1 ui-monospace,monospace;color:var(--accent);
+    background:color-mix(in srgb,var(--accent) 12%,transparent);border:1px solid color-mix(in srgb,var(--accent) 30%,var(--edge));
+    border-radius:10px;width:42px;height:42px;display:flex;align-items:center;justify-content:center}
+  .step h3{margin:2px 0 6px;font-size:17px}
+  .step p{color:var(--dim);font-size:14.5px;line-height:1.6;margin:0}
+  .grid3,.grid2{display:grid;gap:14px}
+  .grid3{grid-template-columns:repeat(3,1fr)}
+  .grid2{grid-template-columns:repeat(2,1fr)}
+  .card{background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:18px 20px}
+  .card h3{margin:0 0 7px;font-size:16px}
+  .card p{color:var(--dim);font-size:14px;line-height:1.6;margin:0}
+  ul.pipeline{list-style:none;margin:0;padding:0;display:grid;gap:11px}
+  ul.pipeline li{display:flex;gap:13px;align-items:flex-start;background:var(--card);border:1px solid var(--edge);
+    border-radius:13px;padding:15px 18px}
+  .chk{flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:14px;font-weight:800;color:var(--accent-2);background:color-mix(in srgb,var(--accent-2) 14%,transparent);
+    border:1px solid color-mix(in srgb,var(--accent-2) 34%,var(--edge))}
+  ul.pipeline strong{display:block;font-size:15px;margin-bottom:3px}
+  ul.pipeline span{color:var(--dim);font-size:14px;line-height:1.55}
+  .cta{background:var(--card);border:1px solid var(--edge);border-radius:18px;margin-top:24px;padding:28px 26px;max-width:920px}
+  .cta h2{margin-top:0}
+  .cta>p{color:var(--dim);font-size:15px;line-height:1.7;max-width:72ch;margin:0}
+  .cta .note{color:var(--faint);font-size:13px;line-height:1.6;margin-top:16px;max-width:75ch}
+  .faq{display:grid;gap:10px}
+  .faq details{background:var(--card);border:1px solid var(--edge);border-radius:13px;padding:2px 18px}
+  .faq summary{cursor:pointer;font-weight:600;font-size:15px;padding:14px 0;list-style:none}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:'+';float:right;color:var(--accent);font-weight:700}
+  .faq details[open] summary::after{content:'–'}
+  .faq p{color:var(--dim);font-size:14.5px;line-height:1.65;margin:0 0 16px}
+  @media(max-width:820px){.grid3{grid-template-columns:1fr 1fr}}
+  @media(max-width:600px){.grid3,.grid2{grid-template-columns:1fr}.step{padding:18px}}
+</style>

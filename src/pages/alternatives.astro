@@ -1,0 +1,10 @@
+---
+import Base from '../layouts/Base.astro';
+import Alternatives from '../components/Alternatives.astro';
+import { alternativesMeta } from '../data/pageMeta.js';
+const locale = 'en';
+const m = alternativesMeta(locale);
+---
+<Base title={m.title} description={m.description} keywords={m.keywords} path={m.path} locale={locale} jsonLd={m.jsonLd}>
+  <Alternatives locale={locale} />
+</Base>

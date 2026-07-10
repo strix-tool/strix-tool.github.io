@@ -1,0 +1,45 @@
+---
+// Rendert die Darstellung einer App: einen ECHTEN Screenshot (public/screens/<slug>.png, aus
+// der laufenden App aufgenommen), wenn einer existiert, ansonsten ein originalgetreues SVG-Mockup der
+// Oberfläche. Echte Aufnahmen bringen bereits ihre eigene Fenster- bzw. Terminalumrandung mit, daher erhalten sie
+// einen einzigen sauberen, abgerundeten Rahmen; Mockups erhalten die kleine Terminal-Titelleiste (globales .shot).
+import fs from 'node:fs';
+import { mockup } from '../data/mockups.js';
+const { app } = Astro.props;
+
+let src = null;
+try {
+  if (fs.existsSync(`public/screens/${app.slug}.png`)) src = `/screens/${app.slug}.png`;
+} catch (e) { src = null; }
+
+// Beschreibender, kuratierter Alt-Text — nennt das Tool, was es tut, seine Kategorie und
+// wo es läuft, damit er für Screenreader-Nutzer und die Bildersuche aussagekräftig ist.
+const plats = Array.isArray(app.platforms) ? app.platforms.join(' and ') : 'Windows and Linux';
+const shotAlt = `${app.name} — ${app.tagline}. Screenshot of the ${(app.category || '').toLowerCase()} tool running on ${plats}.`;
+---
+{src ? (
+  <figure class="realshot">
+    <img src={src} alt={shotAlt} loading="lazy" width="1200" height="800" decoding="async" />
+  </figure>
+) : (
+  <figure class="shot">
+    <div class="shot-bar" aria-hidden="true">
+      <span class="tl"></span><span class="tl"></span><span class="tl"></span>
+      <span class="shot-title">{app.name}</span>
+    </div>
+    <div class="shot-body"><div class="mockup" role="img" aria-label={shotAlt} set:html={mockup(app.slug, app.accent)} /></div>
+  </figure>
+)}
+
+<style>
+  .realshot {
+    margin: 0;
+    border: 1px solid var(--edge);
+    border-radius: 16px;
+    overflow: hidden;
+    background: #0b0f1c;
+    box-shadow: var(--sh, 0 24px 60px -30px rgba(0,0,0,.7));
+    line-height: 0;
+  }
+  .realshot img { width: 100%; height: auto; display: block; }
+</style>
