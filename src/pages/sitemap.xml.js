@@ -13,6 +13,10 @@ export function GET() {
     { loc: '/', priority: '1.0', changefreq: 'weekly', img: '/og.png', title: 'Strix Advanced Tools' },
     { loc: '/downloads/', priority: '0.9', changefreq: 'weekly', img: '/og.png', title: 'Downloads' },
     { loc: '/security/', priority: '0.7', changefreq: 'monthly', img: '/og.png', title: 'Security & Trust' },
+    { loc: '/alternatives/', priority: '0.7', changefreq: 'monthly', img: '/og.png', title: 'Open-Source Alternatives' },
+    { loc: '/contribute/', priority: '0.7', changefreq: 'monthly', img: '/og.png', title: 'Contribute a Tool' },
+    { loc: '/about/', priority: '0.5', changefreq: 'monthly', img: '/og.png', title: 'About the Project' },
+    { loc: '/donate/', priority: '0.5', changefreq: 'monthly', img: '/og.png', title: 'Support the Project' },
     ...apps.map((a) => ({
       loc: `/apps/${a.slug}/`, priority: '0.8', changefreq: 'monthly',
       img: shotOf(a.slug), title: a.name, caption: a.tagline,

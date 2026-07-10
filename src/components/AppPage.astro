@@ -16,12 +16,17 @@ const runCmd = {
   'strix-sentinel': 'sentinel all',
   'strix-inspector': 'strix-inspector info',
   'strix-disk-cleaner': 'strixwipe list',
+  'strix-sinkhole': 'strixsink status',
+  'strix-talon': 'strix-talon',
+  'strix-archer': 'python3 strix_archer.py -u demo-user --i-am-authorized',
   'strix-vantage': 'sudo python3 vantage.py localhost:3000 --profile stealth',
-}[app.slug];
+}[app.slug] || '';
 const winText = tt.app.winInstall;
+// Only append the run line when a command exists (never render a bare "undefined").
+const runLine = runCmd ? `\n${runCmd}` : '';
 const linuxInstall = app.linuxOnly
-  ? `git clone https://github.com/strix-tool/${app.slug}\ncd ${app.slug}\n${runCmd}`
-  : `sudo apt install ./${debName}\n${runCmd}`;
+  ? `git clone https://github.com/strix-tool/${app.slug}\ncd ${app.slug}${runLine}`
+  : `sudo apt install ./${debName}${runLine}`;
 const related = [
   ...apps.filter((x) => x.slug !== app.slug && x.category === app.category),
   ...apps.filter((x) => x.slug !== app.slug && x.category !== app.category),

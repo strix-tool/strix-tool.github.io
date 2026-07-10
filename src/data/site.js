@@ -112,6 +112,7 @@ export const t = {
   footerNote: 'Made for people who care about privacy.',
   footerCols: { product: 'Tools', resources: 'Resources', about: 'Project' },
   langLabel: 'Language',
+  skipToContent: 'Skip to main content',
   stats: { tools: 'tools', platforms: 'platforms', telemetry: 'telemetry', license: 'license' },
   faqNoMatch: 'No question matches — try different words.',
   // Abschnittsüberschriften der Downloads-Seite

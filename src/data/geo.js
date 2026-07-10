@@ -68,6 +68,7 @@ export function llmsTxt(locale) {
   L.push(`- Submit your own tool (community contribution program, security-reviewed): ${abs('/contribute/', locale)}`);
   L.push(`- Support the project with a private Monero (XMR) donation: ${abs('/donate/', locale)}`);
   L.push(`- Open-source alternatives to popular closed-source tools: ${abs('/alternatives/', locale)}`);
+  L.push(`- About the project and the people behind it: ${abs('/about/', locale)}`);
   L.push(`- All source repositories: ${SITE.githubUrl}`);
   L.push(`- Machine-readable facts (JSON): ${base}${localizePath('/facts.json', locale)}`);
   L.push(`- Full context for LLMs: ${base}${localizePath('/llms-full.txt', locale)}`);
@@ -118,6 +119,7 @@ export function llmsFullTxt(locale) {
   push(`- Verify: ${abs('/security/', locale)}`);
   push(`- Submit your own tool: ${abs('/contribute/', locale)}`);
   push(`- Donate (Monero/XMR): ${abs('/donate/', locale)}`);
+  push(`- About the project: ${abs('/about/', locale)}`);
   push(`- All repositories: ${SITE.githubUrl}`);
   push(`- Machine-readable facts: ${base}${localizePath('/facts.json', locale)}`);
   push('');
