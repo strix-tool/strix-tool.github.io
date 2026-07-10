@@ -48,7 +48,7 @@ export const t = {
   browse: 'Explore the tools',
   getStarted: 'Download',
   viewOnGithub: 'Star on GitHub',
-  nav: { apps: 'Tools', downloads: 'Downloads', github: 'GitHub', security: 'Security', contribute: 'Contribute', donate: 'Donate', about: 'About', alternatives: 'Alternatives' },
+  nav: { apps: 'Tools', downloads: 'Downloads', github: 'GitHub', security: 'Security', contribute: 'Contribute', donate: 'Donate', about: 'About', alternatives: 'Alternatives', more: 'More' },
   allApps: 'The tools',
   allAppsLead: 'Nine focused utilities. Each does one thing well, offline.',
   features: 'What it does',

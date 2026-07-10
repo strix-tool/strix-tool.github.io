@@ -178,7 +178,7 @@ const related = [
   .fastfacts dd{margin:0;font-size:14px;color:var(--text);font-weight:600}
   .notfor{list-style:none;padding:0;margin:0;display:grid;gap:10px}
   .notfor li{padding-left:26px;position:relative;font-size:14.5px;color:var(--dim)}
-  .notfor li::before{content:"✕";position:absolute;left:2px;top:0;color:#ff7a90;font-weight:800;font-size:13px}
+  .notfor li::before{content:"✕";position:absolute;left:2px;top:0;color:var(--warn);font-weight:700;font-size:13px}
   .related{display:grid;gap:10px}
   .relcard{display:flex;gap:12px;align-items:center;padding:11px 14px;border:1px solid var(--edge);
     border-radius:12px;background:var(--bg-2);transition:border-color .15s,transform .15s}
@@ -200,7 +200,7 @@ const related = [
   ul.feat{list-style:none;padding:0;margin:0;display:grid;gap:11px}
   ul.feat li{padding-left:28px;position:relative;font-size:14.5px}
   ul.feat li::before{content:"";position:absolute;left:0;top:6px;width:16px;height:16px;border-radius:5px;
-    background:var(--grad);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent)}
+    background:var(--accent-fill);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent)}
   ul.feat li::after{content:"✓";position:absolute;left:3px;top:3px;color:#fff;font-size:11px;font-weight:800}
   .ih{font-size:15px;margin:6px 0 6px}
   .idesc{color:var(--dim);font-size:14px;margin:0 0 10px}
@@ -224,10 +224,10 @@ const related = [
   .codewrap pre{margin:0}
   .copybtn{position:absolute;top:8px;right:8px;z-index:2;font:600 12px/1 inherit;
     padding:7px 11px;border-radius:8px;border:1px solid var(--edge);background:var(--card);
-    color:var(--dim);cursor:pointer;transition:color .15s,border-color .15s,opacity .15s;opacity:.65}
+    color:var(--dim);cursor:pointer;transition:color .15s,border-color .15s,opacity .15s;opacity:1}
   .codewrap:hover .copybtn{opacity:1}
   .copybtn:hover{color:var(--text);border-color:color-mix(in srgb,var(--accent) 55%,var(--edge))}
-  .copybtn.done{color:var(--accent-2);border-color:color-mix(in srgb,var(--accent-2) 50%,var(--edge));opacity:1}
+  .copybtn.done{color:var(--accent-2-text);border-color:color-mix(in srgb,var(--accent-2) 50%,var(--edge));opacity:1}
 </style>
 
 <script>
